@@ -162,19 +162,27 @@
     let selectedTids = new Set();
     const DAYS = ["星期一", "星期二", "星期三", "星期四", "星期五"];
 
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyxCHOVnxnM9SnsC6k8ag81an4uBTsKrNZPnV5OI3fTf_xuRSft7AO5q9uWsG2ItAuk/exec";
+
     window.addEventListener('DOMContentLoaded', () => {
-      google.script.run
-        .withSuccessHandler(data => {
+      fetch(GAS_API_URL)
+        .then(response => {
+          if (!response.ok) throw new Error("網路連線異常");
+          return response.json();
+        })
+        .then(data => {
           APP = data;
           document.getElementById('loading').style.display = 'none';
           document.getElementById('data-status').innerText = `已連線（${APP.teachers.length} 位教師）`;
           initUI();
         })
-        .withFailureHandler(err => {
-          alert('載入失敗：' + err.message);
-          document.getElementById('loading').innerHTML = '<div style="color:red;">載入失敗，請確認試算表欄位！</div>';
-        })
-        .getScheduleData();
+        .catch(err => {
+          console.error(err);
+          document.getElementById('loading').innerHTML = 
+            `<div style="color:red; text-align:center; padding:20px;">
+               載入失敗！<br><span style="font-size:0.85rem; color:#666;">請確認 Apps Script 部署權限是否設為「所有人 (Anyone)」</span>
+             </div>`;
+        });
     });
 
     function initUI() {
