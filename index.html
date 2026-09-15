@@ -3,29 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>桃園高中教師共同空堂與課表查詢平台</title>
+  <title>教師共同空堂查詢平台</title>
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --primary-light: #eff6ff;
-      --success: #059669;
-      --success-light: #ecfdf5;
-      --warning: #d97706;
-      --warning-light: #fffbeb;
-      --danger: #dc2626;
-      --danger-light: #fef2f2;
-      --gray-50: #f8fafc;
-      --gray-100: #f1f5f9;
-      --gray-200: #e2e8f0;
-      --gray-300: #cbd5e1;
-      --gray-500: #64748b;
-      --gray-700: #334155;
-      --gray-900: #0f172a;
-      --radius: 12px;
-      --shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.08), 0 1px 4px -1px rgba(15, 23, 42, 0.04);
+      /* Cafe Cajon 質感日系暖咖色票 */
+      --bg-main: #f4efe6;          /* 暖亞麻底色 */
+      --bg-sub: #ebe4d8;           /* 次級底色 */
+      --card-bg: #fdfcf9;          /* 奶白卡片底色 */
+      --text-main: #3d2e24;        /* 深焙咖啡主文字 */
+      --text-muted: #7d6e63;       /* 研磨淺咖副文字 */
+      --border-color: #dfd5c6;     /* 柔和燕麥邊框 */
+      
+      --accent-blue: #5b8c99;      /* Cajon 招牌湖水青 */
+      --accent-blue-light: #e8f1f3;
+      --accent-brown: #8c6239;     /* 烘焙焦糖棕 */
+      --accent-brown-light: #f7eee4;
+      
+      --free-bg: #eaf3ed;          /* 柔和抹茶綠（空堂） */
+      --free-text: #2d5a3c;
+      --almost-bg: #fdf5e6;        /* 烤杏仁色（差1人） */
+      --almost-text: #8c601a;
+      --busy-bg: #fbeeed;          /* 柔和紅豆色（有課） */
+      --busy-text: #963832;
+
+      --radius: 10px;
+      --shadow: 0 2px 8px rgba(61, 46, 36, 0.05);
     }
 
     * {
@@ -33,584 +35,546 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Hiragino Kaku Gothic ProN", "Microsoft JhengHei", sans-serif;
     }
 
     body {
-      background-color: #f8fafc;
-      color: var(--gray-900);
-      line-height: 1.4;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.5;
       padding-bottom: calc(40px + env(safe-area-inset-bottom));
       overflow-x: hidden;
     }
 
-    /* Header */
+    /* 頂部 Header */
     header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-      color: white;
-      padding: 16px 14px;
+      background: var(--card-bg);
+      border-bottom: 1.5px solid var(--border-color);
+      padding: 14px 16px;
       position: sticky;
       top: 0;
       z-index: 50;
-      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
     }
 
-    .header-container {
+    .header-box {
       max-width: 1200px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .header-title h1 {
+    .brand-title {
       font-size: 1.15rem;
       font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title span.logo-box {
+      background: var(--accent-blue);
+      color: white;
+      font-size: 0.8rem;
+      padding: 3px 7px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    /* 學期切換選單 (頂部) */
+    .semester-control {
       display: flex;
       align-items: center;
       gap: 6px;
-      letter-spacing: 0.2px;
+      background: var(--bg-sub);
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
     }
 
-    .header-title p {
+    .semester-control label {
       font-size: 0.75rem;
-      color: #bfdbfe;
-      margin-top: 2px;
+      color: var(--text-muted);
+      font-weight: 600;
     }
 
-    .badge-status {
-      font-size: 0.72rem;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 3px 8px;
-      border-radius: 999px;
-      white-space: nowrap;
+    .semester-select {
+      background: transparent;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      outline: none;
+      cursor: pointer;
     }
 
-    /* Main Container */
-    .container {
+    .main-wrap {
       max-width: 1200px;
       margin: 12px auto 0;
-      padding: 0 10px;
+      padding: 0 12px;
     }
 
     @media (min-width: 768px) {
-      .container {
-        padding: 0 20px;
-        margin-top: 18px;
-      }
-      .header-title h1 {
-        font-size: 1.45rem;
-      }
-      .header-title p {
-        font-size: 0.85rem;
-      }
+      .main-wrap { padding: 0 20px; margin-top: 16px; }
+      .brand-title { font-size: 1.35rem; }
     }
 
-    /* Nav Tabs (Segmented Control on Mobile) */
-    .tabs {
+    /* 導覽分頁 (簡約暖色切換列) */
+    .nav-tabs {
       display: flex;
-      background: white;
+      background: var(--bg-sub);
       padding: 4px;
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
       margin-bottom: 14px;
       gap: 4px;
-      position: sticky;
-      top: 68px;
-      z-index: 40;
+      border: 1px solid var(--border-color);
     }
 
-    .tab-btn {
+    .nav-tab-btn {
       flex: 1;
-      padding: 10px 4px;
+      padding: 9px 4px;
       border: none;
       background: transparent;
-      border-radius: 8px;
-      font-size: 0.85rem;
+      border-radius: 7px;
+      font-size: 0.88rem;
       font-weight: 600;
-      color: var(--gray-500);
+      color: var(--text-muted);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
       transition: all 0.2s ease;
       white-space: nowrap;
     }
 
-    @media (min-width: 768px) {
-      .tab-btn {
-        font-size: 0.95rem;
-        padding: 12px 16px;
-      }
+    .nav-tab-btn.active {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 1px 4px rgba(61, 46, 36, 0.08);
+      font-weight: 700;
     }
 
-    .tab-btn.active {
-      background: var(--primary);
-      color: white;
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
-    }
-
-    /* Tab Panels */
-    .tab-panel {
+    /* 內容面版 */
+    .panel {
       display: none;
-      background: white;
+      background: var(--card-bg);
       border-radius: var(--radius);
-      padding: 14px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
       box-shadow: var(--shadow);
     }
 
-    @media (min-width: 768px) {
-      .tab-panel {
-        padding: 24px;
-      }
+    .panel.active { display: block; }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
-    .tab-panel.active {
-      display: block;
-    }
-
-    .section-title {
-      font-size: 1.02rem;
+    .panel-head h2 {
+      font-size: 1rem;
       font-weight: 700;
+      color: var(--text-main);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 6px;
     }
 
-    .section-desc {
-      font-size: 0.8rem;
-      color: var(--gray-500);
-      margin-bottom: 12px;
-      line-height: 1.45;
+    .badge-pill {
+      font-size: 0.75rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: var(--accent-brown-light);
+      color: var(--accent-brown);
+      border: 1px solid var(--border-color);
     }
 
-    /* Teacher Pick Mobile Responsive Grid */
-    .selector-container {
+    /* 教師選擇佈局 */
+    .selector-grid {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 14px;
     }
 
     @media (min-width: 860px) {
-      .selector-container {
+      .selector-grid {
         display: grid;
         grid-template-columns: 320px 1fr;
-        gap: 18px;
+        gap: 16px;
       }
     }
 
-    .teacher-box {
-      border: 1px solid var(--gray-200);
-      border-radius: 10px;
-      padding: 10px;
-      background: var(--gray-50);
-    }
-
-    .search-input {
+    .input-clean {
       width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid var(--gray-300);
+      padding: 9px 12px;
+      border: 1.5px solid var(--border-color);
       border-radius: 8px;
-      font-size: 0.9rem;
-      background: white;
+      font-size: 0.88rem;
+      background: var(--card-bg);
+      color: var(--text-main);
       outline: none;
       margin-bottom: 8px;
     }
 
-    .search-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    .input-clean:focus {
+      border-color: var(--accent-brown);
     }
 
-    .teacher-list-scroll {
+    .picker-box {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px;
+      background: var(--bg-main);
+    }
+
+    .picker-scroll {
       max-height: 180px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 4px;
-      background: white;
+      background: var(--card-bg);
       padding: 4px;
-      border-radius: 8px;
-      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
     }
 
     @media (min-width: 860px) {
-      .teacher-list-scroll {
-        max-height: 320px;
-      }
+      .picker-scroll { max-height: 310px; }
     }
 
-    .teacher-row {
+    .teacher-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 10px;
+      padding: 7px 10px;
       border-radius: 6px;
-      font-size: 0.86rem;
+      font-size: 0.85rem;
       cursor: pointer;
     }
 
-    .teacher-row:hover {
-      background: var(--primary-light);
+    .teacher-item:hover {
+      background: var(--accent-brown-light);
     }
 
-    .teacher-row.selected {
-      background: #dbeafe;
-      color: var(--primary-dark);
+    .teacher-item.selected {
+      background: var(--accent-brown-light);
+      color: var(--accent-brown);
       font-weight: 700;
     }
 
     .role-badge {
       font-size: 0.7rem;
-      background: var(--gray-200);
+      background: var(--bg-sub);
+      color: var(--text-muted);
       padding: 2px 6px;
       border-radius: 4px;
-      color: var(--gray-700);
     }
 
-    /* Chips Box */
-    .selected-box {
-      border: 1px solid var(--gray-200);
-      border-radius: 10px;
+    /* 已選教師 Chips 盒 */
+    .chips-box {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
       padding: 10px;
-      background: white;
-      min-height: 80px;
+      background: var(--bg-main);
       display: flex;
       flex-direction: column;
+      min-height: 80px;
     }
 
-    .selected-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
-
-    .chips-flow {
+    .chips-container {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
       max-height: 120px;
       overflow-y: auto;
-      align-content: flex-start;
     }
 
     .chip {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      background: var(--primary-light);
-      color: var(--primary-dark);
-      border: 1px solid #bfdbfe;
-      padding: 4px 8px;
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 3px 8px;
       border-radius: 999px;
       font-size: 0.78rem;
       font-weight: 600;
     }
 
-    .chip-close {
+    .chip-del {
       cursor: pointer;
-      color: #60a5fa;
-      font-size: 0.95rem;
+      color: var(--text-muted);
       font-weight: bold;
-      line-height: 1;
-      padding-left: 2px;
     }
 
-    .chip-close:hover {
-      color: var(--danger);
-    }
+    .chip-del:hover { color: var(--busy-text); }
 
-    .btn-clear {
-      background: none;
-      border: 1px solid var(--gray-300);
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      color: var(--gray-700);
-      cursor: pointer;
-    }
-
-    /* Timetable Wrapper & Responsive Scrolling */
-    .scroll-hint {
+    /* 課表格子與 RWD 凍結欄 */
+    .scroll-tip {
       font-size: 0.72rem;
-      color: var(--gray-500);
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      color: var(--text-muted);
       margin-bottom: 6px;
     }
 
-    .table-container {
+    .timetable-wrap {
       width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      border: 1px solid var(--gray-200);
-      border-radius: 10px;
-      position: relative;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
     }
 
     table.timetable {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      min-width: 580px; /* 保證每欄在手機水平捲動時字體清楚 */
+      min-width: 580px;
       text-align: center;
       font-size: 0.82rem;
+      background: var(--card-bg);
     }
 
     table.timetable th, table.timetable td {
-      border-right: 1px solid var(--gray-200);
-      border-bottom: 1px solid var(--gray-200);
-      padding: 8px 5px;
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 4px;
       vertical-align: middle;
     }
 
     table.timetable th {
-      background: #f1f5f9;
+      background: var(--bg-sub);
       font-weight: 700;
-      color: var(--gray-700);
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      color: var(--text-main);
     }
 
-    /* Sticky First Column for 節次 */
     table.timetable th.sticky-col,
     table.timetable td.sticky-col {
       position: sticky;
       left: 0;
-      background-color: #f8fafc;
+      background: var(--bg-sub);
       font-weight: 700;
-      width: 64px;
-      min-width: 64px;
-      z-index: 15;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.04);
+      width: 60px;
+      min-width: 60px;
+      z-index: 10;
+      box-shadow: 2px 0 4px rgba(61, 46, 36, 0.04);
     }
 
-    table.timetable th.sticky-col {
-      z-index: 25;
-    }
-
-    /* Timetable Statuses */
-    .slot-all-free {
-      background: #ecfdf5 !important;
-      color: #065f46;
+    /* 空堂狀態色 */
+    .cell-free {
+      background: var(--free-bg) !important;
+      color: var(--free-text);
       font-weight: 700;
     }
 
-    .tag-free-badge {
+    .free-pill {
       display: inline-block;
-      background: #10b981;
+      background: var(--free-text);
       color: white;
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 0.72rem;
-      white-space: nowrap;
     }
 
-    .slot-almost-free {
-      background: #fffbeb !important;
-      color: #92400e;
-      text-align: left;
-      padding: 5px !important;
-      font-size: 0.73rem;
-    }
-
-    .slot-busy-state {
-      background: #fef2f2 !important;
-      color: #991b1b;
+    .cell-almost {
+      background: var(--almost-bg) !important;
+      color: var(--almost-text);
       text-align: left;
       padding: 5px !important;
       font-size: 0.72rem;
     }
 
-    .tag-conflict {
+    .cell-busy {
+      background: var(--busy-bg) !important;
+      color: var(--busy-text);
+      text-align: left;
+      padding: 5px !important;
+      font-size: 0.72rem;
+    }
+
+    .busy-tag {
       display: inline-block;
-      background: #fee2e2;
-      color: #b91c1c;
+      background: rgba(150, 56, 50, 0.1);
+      color: var(--busy-text);
       padding: 1px 4px;
       border-radius: 3px;
       margin: 1px 2px 1px 0;
       font-size: 0.7rem;
     }
 
-    /* Personal Schedule Cell */
+    /* 個人課表格子 */
     .cell-lesson {
-      background: #eff6ff !important;
+      background: var(--accent-brown-light) !important;
       text-align: left;
       padding: 6px 5px !important;
-      border-left: 2.5px solid var(--primary) !important;
+      border-left: 3px solid var(--accent-brown) !important;
     }
 
     .lesson-title {
       font-weight: 700;
-      color: #1e3a8a;
+      color: var(--text-main);
       font-size: 0.82rem;
       line-height: 1.25;
     }
 
-    .lesson-sub {
+    .lesson-info {
       font-size: 0.7rem;
-      color: #64748b;
+      color: var(--text-muted);
       margin-top: 2px;
     }
 
-    .cell-free-dash {
-      color: #cbd5e1;
-      font-size: 0.75rem;
-    }
-
-    /* Tab 2 Filter Form */
-    .filter-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    /* 依時段反查 */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 12px;
-    }
-
-    @media (min-width: 640px) {
-      .filter-grid {
-        grid-template-columns: auto auto 1fr;
-      }
     }
 
     .filter-item {
       display: flex;
       flex-direction: column;
       gap: 4px;
+      flex: 1;
+      min-width: 120px;
     }
 
     .filter-item label {
-      font-size: 0.76rem;
+      font-size: 0.75rem;
       font-weight: 700;
-      color: var(--gray-700);
+      color: var(--text-muted);
     }
 
-    select, input[type="text"] {
-      padding: 9px 10px;
-      border: 1.5px solid var(--gray-300);
+    select {
+      padding: 8px 10px;
+      border: 1.5px solid var(--border-color);
       border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text-main);
       font-size: 0.88rem;
-      background: white;
       outline: none;
     }
 
-    /* Teacher Cards */
-    .card-list {
+    .cards-grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 8px;
-      max-height: 480px;
+      max-height: 460px;
       overflow-y: auto;
       margin-top: 10px;
     }
 
-    @media (min-width: 600px) {
-      .card-list {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      }
-    }
-
-    .t-card {
+    .teacher-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 9px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: white;
-      border: 1px solid var(--gray-200);
-      padding: 10px 12px;
-      border-radius: 8px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
 
-    .t-card-name {
-      font-weight: 700;
-      font-size: 0.92rem;
-    }
-
-    .t-card-role {
-      font-size: 0.74rem;
-      color: #64748b;
-      margin-top: 1px;
-    }
-
-    .btn-sub {
-      padding: 5px 9px;
-      border: 1px solid var(--gray-300);
+    .btn-action {
+      background: transparent;
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+      padding: 4px 8px;
       border-radius: 6px;
-      background: white;
-      color: var(--primary);
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
     }
+
+    /* Loading 遮罩 */
+    #loading-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(244, 239, 230, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      color: var(--text-main);
+      font-weight: bold;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--accent-brown);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
+  <div id="loading-mask">
+    <div class="spinner"></div>
+    <div>連線雲端排課資料中...</div>
+  </div>
+
   <header>
-    <div class="header-container">
-      <div class="header-title">
-        <h1><span>📅</span> 桃園高中空堂與課表查詢平台</h1>
-        <p>115 學年度第 1 學期排課資料庫</p>
+    <div class="header-box">
+      <div class="brand-title">
+        <span class="logo-box">課表</span>
+        <span>教師共同空堂平台</span>
       </div>
-      <div class="badge-status" id="header-stat">載入完成</div>
+      
+      <!-- 學年度切換器 -->
+      <div class="semester-control">
+        <label>學期：</label>
+        <select id="semester-selector" class="semester-select" onchange="switchSemester()">
+          <option value="">載入中...</option>
+        </select>
+      </div>
     </div>
   </header>
 
-  <div class="container">
-    <!-- Segmented Navigation Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchNav('common')">
-        <span>🤝</span> 共同空堂
-      </button>
-      <button class="tab-btn" onclick="switchNav('slot')">
-        <span>⏰</span> 時段反查
-      </button>
-      <button class="tab-btn" onclick="switchNav('personal')">
-        <span>👤</span> 個人課表
-      </button>
+  <div class="main-wrap">
+    <!-- 簡約分頁列 -->
+    <div class="nav-tabs">
+      <button class="nav-tab-btn active" onclick="goNav('common')">共同空堂</button>
+      <button class="nav-tab-btn" onclick="goNav('slot')">時段反查</button>
+      <button class="nav-tab-btn" onclick="goNav('personal')">個人課表</button>
     </div>
 
-    <!-- ================= TAB 1: 共同空堂 ================= -->
-    <div id="tab-common" class="tab-panel active">
-      <div class="section-title">
-        <span>🤝 跨教師共同空堂比對</span>
-        <span id="common-summary-badge" style="font-size:0.75rem; font-weight:700; color:var(--success); background:#dcfce7; padding:3px 8px; border-radius:999px; display:none;">
-          0 節空堂
-        </span>
+    <!-- TAB 1: 共同空堂 -->
+    <div id="tab-common" class="panel active">
+      <div class="panel-head">
+        <h2>跨教師空堂交叉比對</h2>
+        <span id="common-count-badge" class="badge-pill" style="display:none;">0 節共同空堂</span>
       </div>
-      <p class="section-desc">搜尋或點擊教師加入比對，即時計算所有人皆有空的時段（亦標記差 1 人的次佳時段）。</p>
 
-      <div class="selector-container">
-        <!-- 挑選名單 -->
-        <div class="teacher-box">
-          <input type="text" id="picker-search" class="search-input" placeholder="🔍 搜尋教師姓名或職務..." oninput="filterPicker()">
-          <div class="teacher-list-scroll" id="picker-list"></div>
+      <div class="selector-grid">
+        <div class="picker-box">
+          <input type="text" id="picker-search" class="input-clean" placeholder="🔍 搜尋教師姓名或職務..." oninput="drawPicker()">
+          <div class="picker-scroll" id="picker-list"></div>
         </div>
 
-        <!-- 已選名單 -->
-        <div class="selected-box">
-          <div class="selected-header">
-            <span>已選擇：<b id="sel-count" style="color:var(--primary);">0</b> 人</span>
-            <button class="btn-clear" onclick="clearSelectedTeachers()">全部清空</button>
+        <div class="chips-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.8rem; font-weight:700;">
+            <span>已選教師（<span id="sel-count">0</span> 人）</span>
+            <span style="color:var(--text-muted); cursor:pointer; font-size:0.75rem;" onclick="clearSelection()">清空已選</span>
           </div>
-          <div class="chips-flow" id="chips-container">
-            <span style="color:#94a3b8; font-size:0.78rem; margin:auto;">請點選上方教師加入比對...</span>
+          <div class="chips-container" id="chips-list">
+            <span style="color:var(--text-muted); font-size:0.75rem; margin:auto;">請點選左側名單加入比對...</span>
           </div>
         </div>
       </div>
 
-      <div class="scroll-hint">👈 手機版可左右滑動查看完整一週課表 👉</div>
-
-      <div class="table-container">
+      <div class="scroll-tip">👈 手機版可左右滑動查看週一至週五 👉</div>
+      <div class="timetable-wrap">
         <table class="timetable">
           <thead>
             <tr>
@@ -627,64 +591,50 @@
       </div>
     </div>
 
-    <!-- ================= TAB 2: 依時段反查 ================= -->
-    <div id="tab-slot" class="tab-panel">
-      <div class="section-title">
-        <span>⏰ 指定時段反查空堂教師</span>
-        <span id="slot-count-badge" style="font-size:0.75rem; font-weight:700; color:#1e40af; background:#dbeafe; padding:3px 8px; border-radius:999px;">
-          空堂：0 人
-        </span>
+    <!-- TAB 2: 依時段反查 -->
+    <div id="tab-slot" class="panel">
+      <div class="panel-head">
+        <h2>指定節次反查空堂教師</h2>
+        <span id="slot-count-badge" class="badge-pill">空堂：0 人</span>
       </div>
 
-      <div class="filter-grid">
+      <div class="filter-row">
         <div class="filter-item">
           <label>星期</label>
-          <select id="slot-sel-day" onchange="runSlotQuery()">
-            <option value="1">星期一</option>
-            <option value="2">星期二</option>
-            <option value="3">星期三</option>
-            <option value="4">星期四</option>
-            <option value="5">星期五</option>
+          <select id="slot-day" onchange="runSlotQuery()">
+            <option value="1">星期一</option><option value="2">星期二</option>
+            <option value="3">星期三</option><option value="4">星期四</option><option value="5">星期五</option>
           </select>
         </div>
         <div class="filter-item">
           <label>節次</label>
-          <select id="slot-sel-period" onchange="runSlotQuery()">
-            <option value="1">第 1 節</option>
-            <option value="2">第 2 節</option>
-            <option value="3">第 3 節</option>
-            <option value="4">第 4 節</option>
-            <option value="5">第 5 節</option>
-            <option value="6">第 6 節</option>
-            <option value="7">第 7 節</option>
-            <option value="8">第 8 節</option>
+          <select id="slot-period" onchange="runSlotQuery()">
+            <option value="1">第 1 節</option><option value="2">第 2 節</option><option value="3">第 3 節</option><option value="4">第 4 節</option>
+            <option value="5">第 5 節</option><option value="6">第 6 節</option><option value="7">第 7 節</option><option value="8">第 8 節</option>
           </select>
         </div>
-        <div class="filter-item" style="grid-column: 1 / -1;">
+        <div class="filter-item" style="flex: 2; min-width: 180px;">
           <label>關鍵字過濾</label>
-          <input type="text" id="slot-kw" placeholder="篩選導師、數學、組長..." oninput="runSlotQuery()">
+          <input type="text" id="slot-kw" class="input-clean" style="margin-bottom:0;" placeholder="搜尋導師、數學、組長..." oninput="runSlotQuery()">
         </div>
       </div>
 
-      <div class="card-list" id="slot-results-box"></div>
+      <div class="cards-grid" id="slot-results"></div>
     </div>
 
-    <!-- ================= TAB 3: 個人課表 ================= -->
-    <div id="tab-personal" class="tab-panel">
-      <div class="section-title">
-        <span>👤 教師個人全週課表</span>
-        <span id="personal-hours-badge" style="font-size:0.75rem; font-weight:700; color:#1e40af; background:#dbeafe; padding:3px 8px; border-radius:999px;">
-          授課節數：0
-        </span>
+    <!-- TAB 3: 個人課表 -->
+    <div id="tab-personal" class="panel">
+      <div class="panel-head">
+        <h2>教師個人全週課表</h2>
+        <span id="personal-hours-badge" class="badge-pill">每週總節數：0 節</span>
       </div>
 
       <div style="margin-bottom: 12px;">
-        <select id="personal-teacher-select" style="width:100%;" onchange="renderPersonalTable()"></select>
+        <select id="personal-select" style="width:100%;" onchange="renderPersonalTable()"></select>
       </div>
 
-      <div class="scroll-hint">👈 手機版可左右滑動查看完整週課表 👉</div>
-
-      <div class="table-container">
+      <div class="scroll-tip">👈 手機版可左右滑動查看週一至週五 👉</div>
+      <div class="timetable-wrap">
         <table class="timetable">
           <thead>
             <tr>
@@ -703,84 +653,106 @@
   </div>
 
   <script>
-  // 1. 請填入您的 Google Apps Script 部署網址（必須為 /exec 結尾）
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxv78GtE37i02PxO3je8lI_rgGsN5mY3Z-zXubf2UFy0W0Wam6oaqbukqcl394a5aLA/exec";
-    
-    // 初始化空資料物件
-    let APP_DATA = { teachers: [], schedules: {} };
+    // 填入您重新部署為「所有人」存取的 Apps Script 網址 (/exec 結尾)
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzOLiCiOsx_zFjCPKc3txQsEqvTiweVpQ8phbJx0Jxa4ZpbpZO7fNsgS77va2jOZhqW/exec";
 
-    const DAY_NAMES = ["星期一", "星期二", "星期三", "星期四", "星期五"];
+    let ALL_DATA = {};           // 儲存所有學期資料
+    let CURRENT_SEM = "";        // 當前選擇學期
+    let ACTIVE_DATA = { teachers: [], schedules: {} };
     let selectedTids = new Set();
+    const DAYS = ["星期一", "星期二", "星期三", "星期四", "星期五"];
 
-    // 2. 網頁開啟時，非同步向 Google 試算表發送請求撈取最新資料
     window.addEventListener('DOMContentLoaded', () => {
-      const statBadge = document.getElementById('header-stat');
-      statBadge.innerText = '連線雲端資料中...';
-
       fetch(GAS_API_URL)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP 錯誤：${response.status}`);
-          }
-          return response.json();
+        .then(res => {
+          if (!res.ok) throw new Error('API 回應錯誤');
+          return res.json();
         })
-        .then(data => {
-          APP_DATA = data;
-          statBadge.innerText = `${APP_DATA.teachers.length} 位教師 / 115-1`;
-          
-          // 資料下載完成後，啟動畫面渲染
-          filterPicker();
-          initPersonalSelect();
-          renderCommonTable();
-          runSlotQuery();
+        .then(resp => {
+          ALL_DATA = resp.data || {};
+          const sems = resp.semesters || [];
+
+          if (sems.length === 0) {
+            throw new Error('試算表中找不到符合格式 (如 115-1) 的工作表');
+          }
+
+          // 初始化學期選單
+          const semSelect = document.getElementById('semester-selector');
+          semSelect.innerHTML = '';
+          sems.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.innerText = `${s} 學期`;
+            semSelect.appendChild(opt);
+          });
+
+          // 預設切換至最新學期
+          CURRENT_SEM = sems[0];
+          semSelect.value = CURRENT_SEM;
+          loadSemesterData(CURRENT_SEM);
+
+          document.getElementById('loading-mask').style.display = 'none';
         })
         .catch(err => {
-          console.error("載入失敗：", err);
-          statBadge.innerText = '載入失敗';
-          statBadge.style.backgroundColor = 'rgba(239, 68, 68, 0.4)';
-          alert('課表載入失敗！\n請確認：\n1. Google Apps Script 的「誰可以存取」是否已設為「所有人 (Anyone)」。\n2. API 網址結尾是否為 /exec。');
+          console.error(err);
+          document.getElementById('loading-mask').innerHTML = `
+            <div style="color:var(--busy-text); text-align:center; padding:20px;">
+              載入失敗！<br><span style="font-size:0.8rem; color:var(--text-muted);">請確認 Google Apps Script 部署與工作表命名 (如 115-1)。</span>
+            </div>
+          `;
         });
     });
 
-    function switchNav(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    // 切換學期觸發
+    function switchSemester() {
+      const semSelect = document.getElementById('semester-selector');
+      CURRENT_SEM = semSelect.value;
+      loadSemesterData(CURRENT_SEM);
+    }
 
+    function loadSemesterData(semKey) {
+      ACTIVE_DATA = ALL_DATA[semKey] || { teachers: [], schedules: {} };
+      selectedTids.clear();
+      updateSelectedChips();
+      drawPicker();
+      renderCommonTable();
+      initPersonalSelect();
+      runSlotQuery();
+    }
+
+    function goNav(tabId) {
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       if (tabId === 'common') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.querySelectorAll('.nav-tab-btn')[0].classList.add('active');
         document.getElementById('tab-common').classList.add('active');
       } else if (tabId === 'slot') {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.querySelectorAll('.nav-tab-btn')[1].classList.add('active');
         document.getElementById('tab-slot').classList.add('active');
         runSlotQuery();
       } else {
-        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.querySelectorAll('.nav-tab-btn')[2].classList.add('active');
         document.getElementById('tab-personal').classList.add('active');
         renderPersonalTable();
       }
     }
 
     // ================= 1. 共同空堂比對 =================
-    function filterPicker() {
+    function drawPicker() {
       const q = document.getElementById('picker-search').value.trim().toLowerCase();
       const list = document.getElementById('picker-list');
       list.innerHTML = '';
 
-      const filtered = APP_DATA.teachers.filter(t => {
-        return t.教師名稱.toLowerCase().includes(q) ||
-               t.教師職務.toLowerCase().includes(q) ||
-               t.教師代碼.toLowerCase().includes(q);
-      });
-
-      filtered.forEach(t => {
+      ACTIVE_DATA.teachers.filter(t => 
+        t.教師名稱.toLowerCase().includes(q) ||
+        t.教師職務.toLowerCase().includes(q) ||
+        t.教師代碼.toLowerCase().includes(q)
+      ).forEach(t => {
         const isSel = selectedTids.has(t.教師代碼);
         const row = document.createElement('div');
-        row.className = `teacher-row ${isSel ? 'selected' : ''}`;
+        row.className = `teacher-item ${isSel ? 'selected' : ''}`;
         row.innerHTML = `
-          <div>
-            <span>${t.教師名稱}</span>
-            <span style="font-size:0.7rem; color:#64748b;">(${t.教師代碼})</span>
-          </div>
+          <div><span>${t.教師名稱}</span><span style="font-size:0.7rem; color:var(--text-muted); margin-left:3px;">(${t.教師代碼})</span></div>
           <span class="role-badge">${t.教師職務}</span>
         `;
         row.onclick = () => toggleTeacher(t.教師代碼);
@@ -791,36 +763,33 @@
     function toggleTeacher(tid) {
       if (selectedTids.has(tid)) selectedTids.delete(tid);
       else selectedTids.add(tid);
-      updateSelectedChipsUI();
-      filterPicker();
+      updateSelectedChips();
+      drawPicker();
       renderCommonTable();
     }
 
-    function clearSelectedTeachers() {
+    function clearSelection() {
       selectedTids.clear();
-      updateSelectedChipsUI();
-      filterPicker();
+      updateSelectedChips();
+      drawPicker();
       renderCommonTable();
     }
 
-    function updateSelectedChipsUI() {
-      const countEl = document.getElementById('sel-count');
-      const box = document.getElementById('chips-container');
-      countEl.innerText = selectedTids.size;
-
+    function updateSelectedChips() {
+      document.getElementById('sel-count').innerText = selectedTids.size;
+      const box = document.getElementById('chips-list');
       if (selectedTids.size === 0) {
-        box.innerHTML = '<span style="color:#94a3b8; font-size:0.78rem; margin:auto;">請點選上方教師加入比對...</span>';
-        document.getElementById('common-summary-badge').style.display = 'none';
+        box.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem; margin:auto;">請點選左側名單加入比對...</span>';
+        document.getElementById('common-count-badge').style.display = 'none';
         return;
       }
-
       box.innerHTML = '';
-      const tMap = new Map(APP_DATA.teachers.map(t => [t.教師代碼, t]));
+      const tMap = new Map(ACTIVE_DATA.teachers.map(t => [t.教師代碼, t]));
       selectedTids.forEach(tid => {
         const t = tMap.get(tid);
         const chip = document.createElement('span');
         chip.className = 'chip';
-        chip.innerHTML = `${t.教師名稱} (${t.教師職務}) <span class="chip-close" onclick="event.stopPropagation(); toggleTeacher('${tid}')">&times;</span>`;
+        chip.innerHTML = `${t.教師名稱} (${t.教師職務}) <span class="chip-del" onclick="event.stopPropagation(); toggleTeacher('${tid}')">&times;</span>`;
         box.appendChild(chip);
       });
     }
@@ -829,33 +798,30 @@
       const tbody = document.getElementById('common-tbody');
       tbody.innerHTML = '';
       const selArr = Array.from(selectedTids);
-      const tMap = new Map(APP_DATA.teachers.map(t => [t.教師代碼, t]));
+      const tMap = new Map(ACTIVE_DATA.teachers.map(t => [t.教師代碼, t]));
       let freeCount = 0;
 
       for (let p = 1; p <= 8; p++) {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td class="sticky-col">第 ${p} 節</td>`;
-
         for (let d = 1; d <= 5; d++) {
           const td = document.createElement('td');
           const key = `${d}-${p}`;
-
           if (selArr.length === 0) {
-            td.innerHTML = '<span style="color:#cbd5e1;">—</span>';
+            td.innerHTML = '<span style="color:var(--border-color);">—</span>';
           } else {
-            const busyWho = selArr.filter(tid => APP_DATA.schedules[tid] && APP_DATA.schedules[tid][key]).map(tid => tMap.get(tid).教師名稱);
-
+            const busyWho = selArr.filter(tid => ACTIVE_DATA.schedules[tid] && ACTIVE_DATA.schedules[tid][key]).map(tid => tMap.get(tid).教師名稱);
             if (busyWho.length === 0) {
-              td.className = 'slot-all-free';
-              td.innerHTML = '<span class="tag-free-badge">✓ 全員空堂</span>';
+              td.className = 'cell-free';
+              td.innerHTML = '<span class="free-pill">✓ 全員空堂</span>';
               freeCount++;
             } else if (busyWho.length === 1 && selArr.length > 2) {
-              td.className = 'slot-almost-free';
-              td.innerHTML = `<div style="font-weight:700; color:#b45309; font-size:0.68rem;">★ 差 1 人</div><div>${busyWho[0]}</div>`;
+              td.className = 'cell-almost';
+              td.innerHTML = `<div style="font-weight:700; font-size:0.68rem;">★ 差 1 人</div><div>${busyWho[0]}</div>`;
             } else {
-              td.className = 'slot-busy-state';
-              let tags = busyWho.slice(0, 2).map(n => `<span class="tag-conflict">${n}</span>`).join('');
-              if (busyWho.length > 2) tags += `<span class="tag-conflict">+${busyWho.length - 2}</span>`;
+              td.className = 'cell-busy';
+              let tags = busyWho.slice(0, 2).map(n => `<span class="busy-tag">${n}</span>`).join('');
+              if (busyWho.length > 2) tags += `<span class="busy-tag">+${busyWho.length - 2}</span>`;
               td.innerHTML = `<div>${tags}</div>`;
             }
           }
@@ -864,104 +830,98 @@
         tbody.appendChild(tr);
       }
 
-      const badge = document.getElementById('common-summary-badge');
+      const badge = document.getElementById('common-count-badge');
       if (selArr.length > 0) {
         badge.style.display = 'inline-block';
-        badge.innerText = `共同空堂：${freeCount} 節`;
+        badge.innerText = `${freeCount} 節共同空堂`;
       }
     }
 
     // ================= 2. 依時段反查 =================
     function runSlotQuery() {
-      const d = parseInt(document.getElementById('slot-sel-day').value);
-      const p = parseInt(document.getElementById('slot-sel-period').value);
+      const d = parseInt(document.getElementById('slot-day').value);
+      const p = parseInt(document.getElementById('slot-period').value);
       const kw = document.getElementById('slot-kw').value.trim().toLowerCase();
       const key = `${d}-${p}`;
 
-      let frees = APP_DATA.teachers.filter(t => {
-        const isBusy = APP_DATA.schedules[t.教師代碼] && APP_DATA.schedules[t.教師代碼][key];
-        return !isBusy;
+      let frees = ACTIVE_DATA.teachers.filter(t => {
+        const isBusy = ACTIVE_DATA.schedules[t.教師代碼] && ACTIVE_DATA.schedules[t.教師代碼][key];
+        const matchKw = !kw || t.教師名稱.toLowerCase().includes(kw) || t.教師職務.toLowerCase().includes(kw) || t.教師代碼.toLowerCase().includes(kw);
+        return !isBusy && matchKw;
       });
 
-      if (kw) {
-        frees = frees.filter(t => t.教師名稱.toLowerCase().includes(kw) || t.教師職務.toLowerCase().includes(kw) || t.教師代碼.toLowerCase().includes(kw));
-      }
-
       document.getElementById('slot-count-badge').innerText = `空堂：${frees.length} 人`;
-      const container = document.getElementById('slot-results-box');
+      const container = document.getElementById('slot-results');
       container.innerHTML = '';
 
       if (frees.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:24px;">無符合條件的空堂教師</div>';
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:20px;">無符合條件的空堂教師</div>';
         return;
       }
 
       frees.forEach(t => {
         const card = document.createElement('div');
-        card.className = 't-card';
+        card.className = 'teacher-card';
         card.innerHTML = `
           <div>
-            <div class="t-card-name">${t.教師名稱}</div>
-            <div class="t-card-role">${t.教師職務}</div>
+            <div style="font-weight:700; font-size:0.9rem;">${t.教師名稱}</div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">${t.教師職務}</div>
           </div>
-          <button class="btn-sub" onclick="jumpToPersonal('${t.教師代碼}')">看課表</button>
+          <button class="btn-action" onclick="jumpPersonal('${t.教師代碼}')">看課表</button>
         `;
         container.appendChild(card);
       });
     }
 
-    function jumpToPersonal(tid) {
-      document.getElementById('personal-teacher-select').value = tid;
-      switchNav('personal');
+    function jumpPersonal(tid) {
+      document.getElementById('personal-select').value = tid;
+      goNav('personal');
     }
 
     // ================= 3. 個人課表 =================
     function initPersonalSelect() {
-      const sel = document.getElementById('personal-teacher-select');
+      const sel = document.getElementById('personal-select');
       sel.innerHTML = '';
-      APP_DATA.teachers.forEach(t => {
+      ACTIVE_DATA.teachers.forEach(t => {
         const opt = document.createElement('option');
         opt.value = t.教師代碼;
         opt.innerText = `${t.教師名稱} [${t.教師職務}] (${t.教師代碼})`;
         sel.appendChild(opt);
       });
+      renderPersonalTable();
     }
 
     function renderPersonalTable() {
-      const tid = document.getElementById('personal-teacher-select').value;
+      const tid = document.getElementById('personal-select').value;
       const tbody = document.getElementById('personal-tbody');
       tbody.innerHTML = '';
-
-      const sched = APP_DATA.schedules[tid] || {};
+      const sched = ACTIVE_DATA.schedules[tid] || {};
       let hours = 0;
 
       for (let p = 1; p <= 8; p++) {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td class="sticky-col">第 ${p} 節</td>`;
-
         for (let d = 1; d <= 5; d++) {
           const td = document.createElement('td');
           const key = `${d}-${p}`;
           const items = sched[key];
-
           if (items && items.length > 0) {
             hours += items.length;
             td.className = 'cell-lesson';
             td.innerHTML = items.map(l => `
               <div>
                 <div class="lesson-title">${l.s}</div>
-                <div class="lesson-sub">${l.c ? l.c : '跨班'}${l.r ? ' @' + l.r : ''}</div>
+                <div class="lesson-info">${l.c ? l.c : '跑班'}${l.r ? ' @' + l.r : ''}</div>
               </div>
             `).join('');
           } else {
-            td.innerHTML = '<span class="cell-free-dash">—</span>';
+            td.innerHTML = '<span style="color:var(--border-color);">—</span>';
           }
           tr.appendChild(td);
         }
         tbody.appendChild(tr);
       }
-
-      document.getElementById('personal-hours-badge').innerText = `授課節數：${hours} 節`;
+      document.getElementById('personal-hours-badge').innerText = `每週總節數：${hours} 節`;
     }
   </script>
 </body>
