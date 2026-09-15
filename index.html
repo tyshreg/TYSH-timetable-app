@@ -654,29 +654,42 @@
 
   <script>
     // 填入您重新部署為「所有人」存取的 Apps Script 網址 (/exec 結尾)
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzOLiCiOsx_zFjCPKc3txQsEqvTiweVpQ8phbJx0Jxa4ZpbpZO7fNsgS77va2jOZhqW/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/您的部署ID/exec";
 
-    let ALL_DATA = {};           // 儲存所有學期資料
-    let CURRENT_SEM = "";        // 當前選擇學期
+    let ALL_DATA = {};
+    let CURRENT_SEM = "";
     let ACTIVE_DATA = { teachers: [], schedules: {} };
     let selectedTids = new Set();
     const DAYS = ["星期一", "星期二", "星期三", "星期四", "星期五"];
 
+    // 具備「自動重試」的穩健資料撈取函式
+    async function fetchWithRetry(url, retries = 2, delay = 1500) {
+      for (let i = 0; i <= retries; i++) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP 錯誤碼: ${res.status}`);
+          return await res.json();
+        } catch (err) {
+          if (i === retries) throw err;
+          // 若為第一次遇到睡眠啟動逾時，等待 1.5 秒後重試
+          await new Promise(r => setTimeout(r, delay));
+        }
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
-      fetch(GAS_API_URL)
-        .then(res => {
-          if (!res.ok) throw new Error('API 回應錯誤');
-          return res.json();
-        })
+      const loadingEl = document.getElementById('loading-mask');
+      
+      fetchWithRetry(GAS_API_URL)
         .then(resp => {
           ALL_DATA = resp.data || {};
           const sems = resp.semesters || [];
 
           if (sems.length === 0) {
-            throw new Error('試算表中找不到符合格式 (如 115-1) 的工作表');
+            throw new Error('試算表中無相符學期工作表（如 115-1）');
           }
 
-          // 初始化學期選單
+          // 填入學期選單
           const semSelect = document.getElementById('semester-selector');
           semSelect.innerHTML = '';
           sems.forEach(s => {
@@ -691,13 +704,19 @@
           semSelect.value = CURRENT_SEM;
           loadSemesterData(CURRENT_SEM);
 
-          document.getElementById('loading-mask').style.display = 'none';
+          loadingEl.style.display = 'none';
         })
         .catch(err => {
           console.error(err);
-          document.getElementById('loading-mask').innerHTML = `
-            <div style="color:var(--busy-text); text-align:center; padding:20px;">
-              載入失敗！<br><span style="font-size:0.8rem; color:var(--text-muted);">請確認 Google Apps Script 部署與工作表命名 (如 115-1)。</span>
+          loadingEl.innerHTML = `
+            <div style="color:var(--busy-text); text-align:center; padding:24px; max-width:320px;">
+              <p style="font-weight:bold; margin-bottom:8px;">連線暫時逾時</p>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:16px;">
+                Google 雲端伺服器正在重新喚醒中，請點擊下方按鈕重新整理。
+              </p>
+              <button onclick="location.reload()" style="padding:6px 16px; border-radius:6px; background:var(--accent-brown); color:white; border:none; cursor:pointer;">
+                重新連線
+              </button>
             </div>
           `;
         });
@@ -707,7 +726,28 @@
     function switchSemester() {
       const semSelect = document.getElementById('semester-selector');
       CURRENT_SEM = semSelect.value;
-      loadSemesterData(CURRENT_SEM);
+      
+      // 若該學期資料尚未載入，即時向 GAS 抓取該學期
+      if (!ALL_DATA[CURRENT_SEM]) {
+        const loadingEl = document.getElementById('loading-mask');
+        loadingEl.style.display = 'flex';
+        loadingEl.querySelector('div:last-child').innerText = `載入 ${CURRENT_SEM} 學期中...`;
+
+        fetchWithRetry(`${GAS_API_URL}?sem=${CURRENT_SEM}`)
+          .then(resp => {
+            if (resp.data && resp.data[CURRENT_SEM]) {
+              ALL_DATA[CURRENT_SEM] = resp.data[CURRENT_SEM];
+              loadSemesterData(CURRENT_SEM);
+            }
+            loadingEl.style.display = 'none';
+          })
+          .catch(err => {
+            alert(`載入 ${CURRENT_SEM} 學期失敗，請重試！`);
+            loadingEl.style.display = 'none';
+          });
+      } else {
+        loadSemesterData(CURRENT_SEM);
+      }
     }
 
     function loadSemesterData(semKey) {
